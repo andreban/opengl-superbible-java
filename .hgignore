@@ -1,0 +1,9 @@
+\.orig$
+\.orig\..*$
+\.chg\..*$
+\.rej$
+\.conflict\~$
+\.log$
+build/*
+nbproject/private/*
+dist/*
