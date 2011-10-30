@@ -23,7 +23,8 @@ public class SimpleGLBatch implements GLBatch {
     
     /**
      * 
-     * @param mode the gl mode of the batch. May be GL_TRIANGLES, GL_LINES, GL_POINTS
+     * @param mode the gl mode of the batch. May be GL_TRIANGLE, GL_TRIANGLE_FAN,
+     * GL_TRIGANGLE_STRIP, GL_LINE, GL_LINE_STRIP, GL_POINTS
      * @param vVertexData an array containing the vertex data.
      * @param vIndexData an array containing the index for the objects
      */
