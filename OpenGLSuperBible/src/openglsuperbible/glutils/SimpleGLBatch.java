@@ -90,31 +90,31 @@ public class SimpleGLBatch implements GLBatch {
     }
     
     @Override
-    public void draw(Map<String, Integer> params) {
+    public void draw(Map<String, Integer> attributeLocations) {
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vertexBuffer);
-        int inVertexLocation = params.get("inVertex");
+        int inVertexLocation = attributeLocations.get("inVertex");
         GL20.glVertexAttribPointer(inVertexLocation, 4, GL11.GL_FLOAT, false, 4 * 4, 0);
         GL20.glEnableVertexAttribArray(inVertexLocation);
         checkerror();
-        if (params.containsKey("inNormal") && normalBuffer >= 0) {
+        if (attributeLocations.containsKey("inNormal") && normalBuffer >= 0) {
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, normalBuffer);
-            int normalLocation = params.get("inNormal");
+            int normalLocation = attributeLocations.get("inNormal");
             GL20.glVertexAttribPointer(normalLocation, 3, GL11.GL_FLOAT, false, 3 * 4, 0);
             GL20.glEnableVertexAttribArray(normalLocation);
                     checkerror();
         }
         
-        if (params.containsKey("inColor") && colorBuffer >= 0) {
+        if (attributeLocations.containsKey("inColor") && colorBuffer >= 0) {
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, colorBuffer);
-            int colorLocation = params.get("inColor");
+            int colorLocation = attributeLocations.get("inColor");
             GL20.glVertexAttribPointer(colorLocation, 4, GL11.GL_FLOAT, false, 4 * 4, 0);
             GL20.glEnableVertexAttribArray(colorLocation);
                     checkerror();
         }
         
-        if (params.containsKey("inTexCoord") && textureBuffer >= 0) {
+        if (attributeLocations.containsKey("inTexCoord") && textureBuffer >= 0) {
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, textureBuffer);
-            int textureLocation = params.get("inTexCoord");
+            int textureLocation = attributeLocations.get("inTexCoord");
             GL20.glVertexAttribPointer(textureLocation, 2, GL11.GL_FLOAT, false, 2 * 4, 0);
             GL20.glEnableVertexAttribArray(textureLocation);
                     checkerror();
