@@ -11,9 +11,9 @@ public class GLShaderFactory {
     // glColor value for fragments.
     // It will shade between verticies.    
     private static final String IDENTITY_VERTEX_PROGRAM = 
-            "attribute vec4 vVertex;\n"
+            "attribute vec4 inVertex;\n"
             + "void main(void) { \n"
-            + "    gl_Position = vVertex; \n"
+            + "    gl_Position = inVertex; \n"
             + "}";            
     private static final String IDENTITY_FRAGMENT_PROGRAM = 
             "uniform vec4 vColor;"

@@ -92,6 +92,11 @@ public class GLShader {
         int locaiton = uniformLocations.get(uniformName);
         GL20.glUniform3f(locaiton, v1, v2, v3);
     }
+    
+    public void setUniform4(String uniformName, float v1, float v2, float v3, float v4) {
+        int location = uniformLocations.get(uniformName);
+        GL20.glUniform4f(location, v1, v2, v3, v4);
+    }
     public void useShader() {
         //Enable shader
         GL20.glUseProgram(program);        
