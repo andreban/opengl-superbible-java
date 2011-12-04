@@ -29,16 +29,6 @@ public class RotatingTriangle {
     public static final Logger LOGGER = Logger.getLogger(RotatingTriangle.class.getName());      
     public static final int DISPLAY_HEIGHT = 480;
     public static final int DISPLAY_WIDTH = 640;
-    
-    static {
-        String osArch = System.getProperty("os.arch");
-        boolean is64bit = "amd64".equals(osArch) || "x86_64".equals(osArch);
-
-        java.awt.Toolkit.getDefaultToolkit(); // loads libmawt.so (needed by jawt)
-
-        if (is64bit) System.load(System.getProperty("java.home") + "/lib/amd64/libjawt.so");
-        else System.load(System.getProperty("java.home") + "/lib/i386/libjawt.so");        
-    }
      
     private GLBatch triangleBatch;
     private GLShader shader;    
@@ -142,13 +132,14 @@ public class RotatingTriangle {
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         shader.useShader();        
         shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);
-        float[] translationMatrix = new float[16];
-        Math3D.translationMatrix44f(translationMatrix, 0.0f, 0.0f, 0.0f);
         
-        float[] rotationMatrix = new float[16];
+        float[] modelViewMatrix = new float[16];        
+        float[] translationMatrix = new float[16];
+        float[] rotationMatrix = new float[16];        
+        
+        Math3D.translationMatrix44f(translationMatrix, 0.0f, 0.0f, 0.0f);        
         Math3D.rotationMatrix44(rotationMatrix, angle, 0.0f, 0.0f, 1.0f);
         
-        float[] modelViewMatrix = new float[16];
         Math3D.matrixMultiply44(modelViewMatrix, translationMatrix, rotationMatrix);
         
         FloatBuffer buff = BufferUtils.createFloatBuffer(16);

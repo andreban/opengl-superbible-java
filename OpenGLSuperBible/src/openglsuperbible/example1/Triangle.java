@@ -25,17 +25,7 @@ import org.lwjgl.opengl.PixelFormat;
 public class Triangle {
     public static final Logger LOGGER = Logger.getLogger(Triangle.class.getName());      
     public static final int DISPLAY_HEIGHT = 480;
-    public static final int DISPLAY_WIDTH = 640;
-    
-    static {
-        String osArch = System.getProperty("os.arch");
-        boolean is64bit = "amd64".equals(osArch) || "x86_64".equals(osArch);
-
-        java.awt.Toolkit.getDefaultToolkit(); // loads libmawt.so (needed by jawt)
-
-        if (is64bit) System.load(System.getProperty("java.home") + "/lib/amd64/libjawt.so");
-        else System.load(System.getProperty("java.home") + "/lib/i386/libjawt.so");        
-    }
+    public static final int DISPLAY_WIDTH = 640;   
      
     private GLBatch triangleBatch;
     private GLShader shader;    
