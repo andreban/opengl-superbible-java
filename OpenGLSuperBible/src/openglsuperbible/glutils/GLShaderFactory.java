@@ -27,9 +27,9 @@ public class GLShaderFactory {
     // and uses a uniform color value.    
     private static final String FLAT_VERTEX_PROGRAM = 
             "uniform mat4 mvpMatrix;"
-            + "attribute vec4 vVertex;"
+            + "attribute vec4 inVertex;"
             + "void main(void) { "
-            + "    gl_Position = mvpMatrix * vVertex; "
+            + "    gl_Position = mvpMatrix * inVertex; "
             + "}";
     
     private static final String FLAT_FRAGMENT_PROGRAM = 

@@ -1,13 +1,16 @@
-package openglsuperbible.glutils.example1;
+package openglsuperbible.example2;
 
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import openglsuperbible.glutils.GLBatch;
 import openglsuperbible.glutils.GLShader;
 import openglsuperbible.glutils.GLShaderFactory;
+import openglsuperbible.glutils.Math3D;
 import openglsuperbible.glutils.SimpleGLBatch;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -22,8 +25,8 @@ import org.lwjgl.opengl.PixelFormat;
  *
  * @author andreban
  */
-public class Triangle {
-    public static final Logger LOGGER = Logger.getLogger(Triangle.class.getName());      
+public class RotatingTriangle {
+    public static final Logger LOGGER = Logger.getLogger(RotatingTriangle.class.getName());      
     public static final int DISPLAY_HEIGHT = 480;
     public static final int DISPLAY_WIDTH = 640;
     
@@ -49,7 +52,7 @@ public class Triangle {
     }  
     
     public static void main(String[] args) {
-        Triangle main = null;
+        RotatingTriangle main = null;
         try {
           System.out.println("Keys:");
           System.out.println("down  - Shrink");
@@ -57,7 +60,7 @@ public class Triangle {
           System.out.println("left  - Rotate left");
           System.out.println("right - Rotate right");
           System.out.println("esc   - Exit");
-          main = new Triangle();
+          main = new RotatingTriangle();
           main.create();
           main.run();
         }
@@ -100,7 +103,7 @@ public class Triangle {
     public void initGL() {
         glClearColor(0.0f,0.0f,0.0f,0.0f);
         
-        shader = GLShaderFactory.getIdentityShader();       
+        shader = GLShaderFactory.getFlatShader();       
         triangleBatch = new SimpleGLBatch(GL11.GL_TRIANGLES,
                 new float[]{ 0.0f, 0.5f, 0.0f, 1.0f, 
                             -0.5f, -0.5f, 0.0f, 1.0f, 
@@ -133,10 +136,25 @@ public class Triangle {
     public void update() {
     }
 
+    float angle = 0.0f;
     public void render() {
+        angle += 0.05f;
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         shader.useShader();        
         shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);
+        float[] translationMatrix = new float[16];
+        Math3D.translationMatrix44f(translationMatrix, 0.0f, 0.0f, 0.0f);
+        
+        float[] rotationMatrix = new float[16];
+        Math3D.rotationMatrix44(rotationMatrix, angle, 0.0f, 0.0f, 1.0f);
+        
+        float[] modelViewMatrix = new float[16];
+        Math3D.matrixMultiply44(modelViewMatrix, translationMatrix, rotationMatrix);
+        
+        FloatBuffer buff = BufferUtils.createFloatBuffer(16);
+        buff.put(modelViewMatrix);
+        buff.flip();
+        shader.setUniformMatrix4("mvpMatrix", false, buff);
         triangleBatch.draw(shader.getAttributeLocations());
         Display.update();
     }    
