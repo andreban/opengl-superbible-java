@@ -1,4 +1,4 @@
-package openglsuperbible.example2;
+package openglsuperbible.example3;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import openglsuperbible.glutils.GLBatch;
 import openglsuperbible.glutils.GLShader;
 import openglsuperbible.glutils.GLShaderFactory;
-import openglsuperbible.glutils.Math3D;
+import openglsuperbible.glutils.MatrixStack;
 import openglsuperbible.glutils.SimpleGLBatch;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
@@ -25,8 +25,8 @@ import org.lwjgl.opengl.PixelFormat;
  *
  * @author andreban
  */
-public class RotatingTriangle {
-    public static final Logger LOGGER = Logger.getLogger(RotatingTriangle.class.getName());      
+public class Example3 {
+    public static final Logger LOGGER = Logger.getLogger(Example3.class.getName());      
     public static final int DISPLAY_HEIGHT = 480;
     public static final int DISPLAY_WIDTH = 640;
      
@@ -42,7 +42,7 @@ public class RotatingTriangle {
     }  
     
     public static void main(String[] args) {
-        RotatingTriangle main = null;
+        Example3 main = null;
         try {
           System.out.println("Keys:");
           System.out.println("down  - Shrink");
@@ -50,7 +50,7 @@ public class RotatingTriangle {
           System.out.println("left  - Rotate left");
           System.out.println("right - Rotate right");
           System.out.println("esc   - Exit");
-          main = new RotatingTriangle();
+          main = new Example3();
           main.create();
           main.run();
         }
@@ -127,26 +127,21 @@ public class RotatingTriangle {
     }
 
     float angle = 0.0f;
+    private MatrixStack matrixStack = new MatrixStack();
+    private FloatBuffer buff = BufferUtils.createFloatBuffer(16);    
     public void render() {
         angle += 1f;
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         shader.useShader();        
         shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);
         
-        float[] modelViewMatrix = new float[16];        
-        float[] translationMatrix = new float[16];
-        float[] rotationMatrix = new float[16];        
-        
-        Math3D.translationMatrix44f(translationMatrix, 0.0f, 0.0f, 0.0f);        
-        Math3D.rotationMatrix44(rotationMatrix, (float)Math.toRadians(angle), 0.0f, 0.0f, 1.0f);
-        
-        Math3D.matrixMultiply44(modelViewMatrix, translationMatrix, rotationMatrix);
-        
-        FloatBuffer buff = BufferUtils.createFloatBuffer(16);
-        buff.put(modelViewMatrix);
-        buff.flip();
+        matrixStack.push();
+        matrixStack.rotate(angle, 0.0f, 0.0f, 1.0f);        
+        matrixStack.fillBuffer(buff);
+
         shader.setUniformMatrix4("mvpMatrix", false, buff);
         triangleBatch.draw(shader.getAttributeLocations());
+        matrixStack.pop();
         Display.update();
     }    
 }
