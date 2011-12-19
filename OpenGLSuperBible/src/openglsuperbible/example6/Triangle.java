@@ -1,16 +1,16 @@
 package openglsuperbible.example6;
 
-import openglsuperbible.example5.*;
+import openglsuperbible.example2.*;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import openglsuperbible.glutils.GLBatch;
-import openglsuperbible.glutils.GLBatchFactory;
 import openglsuperbible.glutils.GLShader;
 import openglsuperbible.glutils.GLShaderFactory;
-import openglsuperbible.glutils.MatrixStack;
+import openglsuperbible.glutils.Math3D;
+import openglsuperbible.glutils.SimpleGLBatch;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -18,6 +18,7 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.opengl.GL11;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.opengl.PixelFormat;
 
@@ -25,17 +26,12 @@ import org.lwjgl.opengl.PixelFormat;
  *
  * @author andreban
  */
-public class Example6 {
-    public static final Logger LOGGER = Logger.getLogger(Example6.class.getName());      
+public class Triangle {
+    public static final Logger LOGGER = Logger.getLogger(Triangle.class.getName());      
     public static final int DISPLAY_HEIGHT = 480;
     public static final int DISPLAY_WIDTH = 640;
      
-    private GLBatch cubeBatch;
-    private GLBatch sphereBatch;
-    private GLBatch cylinderBatch;
-    private GLBatch diskBatch;
-    private GLBatch torusBatch;
-    
+    private GLBatch triangleBatch;
     private GLShader shader;    
     
     static {
@@ -47,7 +43,7 @@ public class Example6 {
     }  
     
     public static void main(String[] args) {
-        Example6 main = null;
+        Triangle main = null;
         try {
           System.out.println("Keys:");
           System.out.println("down  - Shrink");
@@ -55,7 +51,7 @@ public class Example6 {
           System.out.println("left  - Rotate left");
           System.out.println("right - Rotate right");
           System.out.println("esc   - Exit");
-          main = new Example6();
+          main = new Triangle();
           main.create();
           main.run();
         }
@@ -74,6 +70,7 @@ public class Example6 {
         Display.setDisplayMode(new DisplayMode(DISPLAY_WIDTH,DISPLAY_HEIGHT));
         Display.setFullscreen(false);
         Display.setTitle("Hello LWJGL World!");
+        Display.setResizable(true);
         Display.create(new PixelFormat(), new ContextAttribs(3, 2).withProfileCompatibility(true));        
 
         //Keyboard
@@ -99,19 +96,20 @@ public class Example6 {
         glClearColor(0.0f,0.0f,0.0f,0.0f);
         
         shader = GLShaderFactory.getFlatShader();       
-        cubeBatch = GLBatchFactory.makeCube(0.3f, 0.3f, 0.3f);
-        sphereBatch = GLBatchFactory.makeSphere(0.15f, 20, 20);
-        cylinderBatch = GLBatchFactory.makeCylinder(0.15f, 0.075f, 0.3f, 20, 10);        
-        diskBatch = GLBatchFactory.makeDisk(0.075f, 0.25f, 20, 20);
-        torusBatch = GLBatchFactory.makeTorus(0.25f, 0.075f, 36, 36);
+        triangleBatch = new SimpleGLBatch(GL11.GL_TRIANGLES,
+                new float[]{ 0.0f, 0.5f, 0.0f, 1.0f, 
+                            -0.5f, -0.5f, 0.0f, 1.0f, 
+                             0.5f, -0.5f, 0.0f, 1.0f},
+                new short[]{0, 1, 2});          
     } 
     
     public void resizeGL() {
-        glViewport(0,0,DISPLAY_WIDTH ,DISPLAY_HEIGHT);
+        glViewport(0,0,Display.getWidth() ,Display.getHeight());
     }    
   
-    public void run() {
+    public void run() {        
         while (!Display.isCloseRequested() && !Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
+            if (Display.wasResized()) resizeGL();
             if (Display.isVisible()) {
                 render();
             } else {
@@ -132,58 +130,26 @@ public class Example6 {
     }
 
     float angle = 0.0f;
-    private MatrixStack matrixStack = new MatrixStack();
-    private FloatBuffer buff = BufferUtils.createFloatBuffer(16);    
     public void render() {
         angle += 1f;
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         shader.useShader();        
+        shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);
         
-        matrixStack.push();
-        shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);        
-        matrixStack.translate(-0.5f, 0.5f, 0);
-        matrixStack.rotate(angle, 1.0f, 1.0f, 1.0f);        
-        matrixStack.fillBuffer(buff);
+        float[] modelViewMatrix = new float[16];        
+        float[] translationMatrix = new float[16];
+        float[] rotationMatrix = new float[16];        
+        
+        Math3D.translationMatrix44f(translationMatrix, 0.0f, 0.0f, 0.0f);        
+        Math3D.rotationMatrix44(rotationMatrix, (float)Math.toRadians(angle), 0.0f, 0.0f, 0.0f);
+        
+        Math3D.matrixMultiply44(modelViewMatrix, translationMatrix, rotationMatrix);
+        
+        FloatBuffer buff = BufferUtils.createFloatBuffer(16);
+        buff.put(modelViewMatrix);
+        buff.flip();
         shader.setUniformMatrix4("mvpMatrix", false, buff);
-        cubeBatch.draw(shader.getAttributeLocations());
-        matrixStack.pop();
-        
-        matrixStack.push();
-        shader.setUniform4("vColor", 0.0f, 0.0f, 1.0f, 1.0f);        
-        matrixStack.translate(0.5f, 0.5f, 0);
-        matrixStack.rotate(angle, 1.0f, 1.0f, 1.0f);        
-        matrixStack.fillBuffer(buff);
-        shader.setUniformMatrix4("mvpMatrix", false, buff);
-        sphereBatch.draw(shader.getAttributeLocations());
-        matrixStack.pop();
-        
-        matrixStack.push();
-        shader.setUniform4("vColor", 0.0f, 1.0f, 0.0f, 1.0f);        
-        matrixStack.translate(0.0f, 0.0f, 0);
-        matrixStack.rotate(angle, 1.0f, 1.0f, 1.0f);        
-        matrixStack.fillBuffer(buff);
-        shader.setUniformMatrix4("mvpMatrix", false, buff);
-        cylinderBatch.draw(shader.getAttributeLocations());
-        matrixStack.pop();     
-        
-        matrixStack.push();
-        shader.setUniform4("vColor", 1.0f, 1.0f, 0.0f, 1.0f);        
-        matrixStack.translate(-0.5f, -0.5f, 0);
-        matrixStack.rotate(angle, 1.0f, 1.0f, 1.0f);        
-        matrixStack.fillBuffer(buff);
-        shader.setUniformMatrix4("mvpMatrix", false, buff);
-        diskBatch.draw(shader.getAttributeLocations());
-        matrixStack.pop();       
-        
-        matrixStack.push();
-        shader.setUniform4("vColor", 0.0f, 1.0f, 1.0f, 1.0f);        
-        matrixStack.translate(0.5f, -0.5f, 0);
-        matrixStack.rotate(angle, 1.0f, 1.0f, 1.0f);        
-        matrixStack.fillBuffer(buff);
-        shader.setUniformMatrix4("mvpMatrix", false, buff);
-        torusBatch.draw(shader.getAttributeLocations());
-        matrixStack.pop();         
-        
+        triangleBatch.draw(shader.getAttributeLocations());
         Display.update();
     }    
 }
