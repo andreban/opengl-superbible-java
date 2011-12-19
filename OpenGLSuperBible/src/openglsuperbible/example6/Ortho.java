@@ -1,16 +1,16 @@
 package openglsuperbible.example6;
 
-import openglsuperbible.example2.*;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import openglsuperbible.glutils.GLBatch;
+import openglsuperbible.glutils.GLBatchFactory;
 import openglsuperbible.glutils.GLShader;
 import openglsuperbible.glutils.GLShaderFactory;
 import openglsuperbible.glutils.Math3D;
-import openglsuperbible.glutils.SimpleGLBatch;
+import openglsuperbible.glutils.MatrixStack;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -18,7 +18,6 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL11;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.opengl.PixelFormat;
 
@@ -26,12 +25,16 @@ import org.lwjgl.opengl.PixelFormat;
  *
  * @author andreban
  */
-public class Triangle {
-    public static final Logger LOGGER = Logger.getLogger(Triangle.class.getName());      
+public class Ortho {
+    public static final Logger LOGGER = Logger.getLogger(Ortho.class.getName());      
     public static final int DISPLAY_HEIGHT = 480;
     public static final int DISPLAY_WIDTH = 640;
      
-    private GLBatch triangleBatch;
+    private MatrixStack modelViewMatrix;    
+    
+    private GLBatch sideWall;
+    private GLBatch topWall;
+
     private GLShader shader;    
     
     static {
@@ -43,7 +46,7 @@ public class Triangle {
     }  
     
     public static void main(String[] args) {
-        Triangle main = null;
+        Ortho main = null;
         try {
           System.out.println("Keys:");
           System.out.println("down  - Shrink");
@@ -51,7 +54,7 @@ public class Triangle {
           System.out.println("left  - Rotate left");
           System.out.println("right - Rotate right");
           System.out.println("esc   - Exit");
-          main = new Triangle();
+          main = new Ortho();
           main.create();
           main.run();
         }
@@ -95,12 +98,12 @@ public class Triangle {
     public void initGL() {
         glClearColor(0.0f,0.0f,0.0f,0.0f);
         
-        shader = GLShaderFactory.getFlatShader();       
-        triangleBatch = new SimpleGLBatch(GL11.GL_TRIANGLES,
-                new float[]{ 0.0f, 0.5f, 0.0f, 1.0f, 
-                            -0.5f, -0.5f, 0.0f, 1.0f, 
-                             0.5f, -0.5f, 0.0f, 1.0f},
-                new short[]{0, 1, 2});          
+        shader = GLShaderFactory.getFlatShader();    
+        
+        sideWall = GLBatchFactory.makeCube(0.2f, 0.8f, 1.0f);
+        topWall = GLBatchFactory.makeCube(0.8f, 0.2f, 1.0f);
+        modelViewMatrix = new MatrixStack();
+      
     } 
     
     public void resizeGL() {
@@ -129,27 +132,44 @@ public class Triangle {
     public void update() {
     }
 
-    float angle = 0.0f;
+    private FloatBuffer buff = BufferUtils.createFloatBuffer(16);
     public void render() {
-        angle += 1f;
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
         shader.useShader();        
-        shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);
         
-        float[] modelViewMatrix = new float[16];        
-        float[] translationMatrix = new float[16];
-        float[] rotationMatrix = new float[16];        
-        
-        Math3D.translationMatrix44f(translationMatrix, 0.0f, 0.0f, 0.0f);        
-        Math3D.rotationMatrix44(rotationMatrix, (float)Math.toRadians(angle), 0.0f, 0.0f, 0.0f);
-        
-        Math3D.matrixMultiply44(modelViewMatrix, translationMatrix, rotationMatrix);
-        
-        FloatBuffer buff = BufferUtils.createFloatBuffer(16);
-        buff.put(modelViewMatrix);
-        buff.flip();
+        modelViewMatrix.push();
+        modelViewMatrix.translate(-0.5f, 0, 0);
+        shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);                
+        modelViewMatrix.fillBuffer(buff);
         shader.setUniformMatrix4("mvpMatrix", false, buff);
-        triangleBatch.draw(shader.getAttributeLocations());
+        sideWall.draw(shader.getAttributeLocations());
+        modelViewMatrix.pop();
+        
+        modelViewMatrix.push();
+        modelViewMatrix.translate(+0.5f, 0, 0);
+        shader.setUniform4("vColor", 0.0f, 1.0f, 0.0f, 1.0f);                
+        modelViewMatrix.fillBuffer(buff);
+        shader.setUniformMatrix4("mvpMatrix", false, buff);
+        sideWall.draw(shader.getAttributeLocations());
+        modelViewMatrix.pop();
+        
+        modelViewMatrix.push();
+        modelViewMatrix.translate(0, -0.3f, 0);
+        shader.setUniform4("vColor", 1.0f, 0.0f, 1.0f, 1.0f);                
+        modelViewMatrix.fillBuffer(buff);
+        shader.setUniformMatrix4("mvpMatrix", false, buff);
+        topWall.draw(shader.getAttributeLocations());
+        modelViewMatrix.pop();
+        
+        modelViewMatrix.push();
+        modelViewMatrix.translate(0, 0.3f, 0);
+        shader.setUniform4("vColor", 1.0f, 1.0f, 0.0f, 1.0f);                
+        modelViewMatrix.fillBuffer(buff);
+        shader.setUniformMatrix4("mvpMatrix", false, buff);
+        topWall.draw(shader.getAttributeLocations());
+        modelViewMatrix.pop();        
+        
+        
         Display.update();
     }    
 }

@@ -6,12 +6,12 @@ import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import openglsuperbible.glutils.GLBatch;
+import openglsuperbible.glutils.GLBatchFactory;
 import openglsuperbible.glutils.GLFrustrum;
 import openglsuperbible.glutils.GLShader;
 import openglsuperbible.glutils.GLShaderFactory;
 import openglsuperbible.glutils.Math3D;
 import openglsuperbible.glutils.MatrixStack;
-import openglsuperbible.glutils.SimpleGLBatch;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -19,7 +19,6 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
-import org.lwjgl.opengl.GL11;
 import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.opengl.PixelFormat;
 
@@ -27,8 +26,8 @@ import org.lwjgl.opengl.PixelFormat;
  *
  * @author andreban
  */
-public class PerspectiveTriangle {
-    public static final Logger LOGGER = Logger.getLogger(PerspectiveTriangle.class.getName());      
+public class Perspective {
+    public static final Logger LOGGER = Logger.getLogger(Perspective.class.getName());      
     public static final int DISPLAY_HEIGHT = 480;
     public static final int DISPLAY_WIDTH = 640;
      
@@ -36,7 +35,8 @@ public class PerspectiveTriangle {
     private MatrixStack modelViewMatrix;
     private MatrixStack projectionMatrix;
     
-    private GLBatch triangleBatch;
+    private GLBatch sideWall;
+    private GLBatch topWall;
     
     private GLShader shader;    
     
@@ -49,7 +49,7 @@ public class PerspectiveTriangle {
     }  
     
     public static void main(String[] args) {
-        PerspectiveTriangle main = null;
+        Perspective main = null;
         try {
           System.out.println("Keys:");
           System.out.println("down  - Shrink");
@@ -57,7 +57,7 @@ public class PerspectiveTriangle {
           System.out.println("left  - Rotate left");
           System.out.println("right - Rotate right");
           System.out.println("esc   - Exit");
-          main = new PerspectiveTriangle();
+          main = new Perspective();
           main.create();
           main.run();
         }
@@ -103,11 +103,8 @@ public class PerspectiveTriangle {
                 
         shader = GLShaderFactory.getFlatShader();       
         
-        triangleBatch = new SimpleGLBatch(GL11.GL_TRIANGLES,
-                new float[]{ 0.0f, 0.5f, 0.0f, 1.0f, 
-                            -0.5f, -0.5f, 0.0f, 1.0f, 
-                             0.5f, -0.5f, 0.0f, 1.0f},
-                new short[]{0, 1, 2});      
+        sideWall = GLBatchFactory.makeCube(0.2f, 0.8f, 1.0f);
+        topWall = GLBatchFactory.makeCube(0.8f, 0.2f, 1.0f);      
         
         frustrum = new GLFrustrum();
         modelViewMatrix = new MatrixStack();
@@ -150,15 +147,50 @@ public class PerspectiveTriangle {
         shader.useShader();        
 
         modelViewMatrix.push();
-        shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);        
-        modelViewMatrix.translate(0f, 0f, -2f);
+        modelViewMatrix.translate(-0.5f, 0, -2);
+        shader.setUniform4("vColor", 1.0f, 0.0f, 0.0f, 1.0f);                
         Math3D.matrixMultiply44(mvpMatrix, projectionMatrix.getMatrix(), modelViewMatrix.getMatrix());
         buff.position(0);
         buff.put(mvpMatrix);
         buff.flip();
         shader.setUniformMatrix4("mvpMatrix", false, buff);
-        triangleBatch.draw(shader.getAttributeLocations());
-        modelViewMatrix.pop();              
+        sideWall.draw(shader.getAttributeLocations());
+        modelViewMatrix.pop();
+        
+        modelViewMatrix.push();
+        modelViewMatrix.translate(+0.5f, 0, -2);
+        shader.setUniform4("vColor", 0.0f, 1.0f, 0.0f, 1.0f);                
+        Math3D.matrixMultiply44(mvpMatrix, projectionMatrix.getMatrix(), modelViewMatrix.getMatrix());
+        buff.position(0);
+        buff.put(mvpMatrix);
+        buff.flip();
+        shader.setUniformMatrix4("mvpMatrix", false, buff);
+        sideWall.draw(shader.getAttributeLocations());
+        modelViewMatrix.pop();
+        
+        modelViewMatrix.push();
+        modelViewMatrix.translate(0, -0.3f, -2);
+        shader.setUniform4("vColor", 1.0f, 0.0f, 1.0f, 1.0f);                
+        Math3D.matrixMultiply44(mvpMatrix, projectionMatrix.getMatrix(), modelViewMatrix.getMatrix());
+        buff.position(0);
+        buff.put(mvpMatrix);
+        buff.flip();
+        shader.setUniformMatrix4("mvpMatrix", false, buff);
+        topWall.draw(shader.getAttributeLocations());
+        modelViewMatrix.pop();
+        
+        modelViewMatrix.push();
+        modelViewMatrix.translate(0, 0.3f, -2);
+        shader.setUniform4("vColor", 1.0f, 1.0f, 0.0f, 1.0f);                
+        Math3D.matrixMultiply44(mvpMatrix, projectionMatrix.getMatrix(), modelViewMatrix.getMatrix());
+        buff.position(0);
+        buff.put(mvpMatrix);
+        buff.flip();
+        shader.setUniformMatrix4("mvpMatrix", false, buff);
+        topWall.draw(shader.getAttributeLocations());
+        modelViewMatrix.pop();           
+        
+            
         
         Display.update();
     }    
