@@ -235,6 +235,20 @@ public class Math3D {
         result[2] = u[0]*v[1] - v[0]*u[1];        
     }
     
+    public static void crossProduct3(double[] result, double[] u, double[] v) {
+        result[0] = u[1]*v[2] - v[1]*u[2];
+        result[1] = -u[0]*v[2] + v[0]*u[2];
+        result[2] = u[0]*v[1] - v[0]*u[1];        
+    }
+    
+    public static float dotProduct3(float[] u, float[] v) {
+        return u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
+    }
+    
+    public static double dotProduct3(double[] u, double[] v) {
+        return u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
+    }       
+    
     public static void extractRotationMatrix33(float[] result, float[] matrix) {
         System.arraycopy(matrix, 0, result, 0, 3);
         System.arraycopy(matrix, 4, result, 3, 3);        
