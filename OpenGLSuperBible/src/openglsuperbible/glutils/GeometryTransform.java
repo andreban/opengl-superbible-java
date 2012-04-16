@@ -1,5 +1,7 @@
 package openglsuperbible.glutils;
 
+import java.nio.FloatBuffer;
+
 /**
  *
  * @author andreban
@@ -30,6 +32,13 @@ public class GeometryTransform {
 
     public void setProjectionStack(MatrixStack projectionStack) {
         this.projectionStack = projectionStack;
+    }
+    
+    public void fillModelViewProjectionBuffer(FloatBuffer buffer) {
+        float[] matrix = getModelViewProjectionMatrix();
+        buffer.position(0);
+        buffer.put(matrix);
+        buffer.flip();        
     }
     
     public float[] getModelViewProjectionMatrix() {

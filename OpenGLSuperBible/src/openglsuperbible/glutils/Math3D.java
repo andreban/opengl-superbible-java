@@ -247,7 +247,7 @@ public class Math3D {
     
     public static double dotProduct3(double[] u, double[] v) {
         return u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
-    }       
+    }     
     
     public static void extractRotationMatrix33(float[] result, float[] matrix) {
         System.arraycopy(matrix, 0, result, 0, 3);
